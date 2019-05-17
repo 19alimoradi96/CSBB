@@ -21,9 +21,10 @@ GameObject:
   - component: {fileID: 4389680611726024}
   - component: {fileID: 212383123070360652}
   - component: {fileID: 68104785462107616}
+  - component: {fileID: 114892360261484586}
   m_Layer: 0
   m_Name: brick6
-  m_TagString: Untagged
+  m_TagString: Brick
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -73,6 +74,19 @@ EdgeCollider2D:
   - {x: 0.17013133, y: 0.27106804}
   - {x: 0.08479983, y: 0.29123753}
   - {x: -0.01861465, y: 0.3118167}
+--- !u!114 &114892360261484586
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1102522703060772}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 431be526c0e844347a16a3d8a1b8a3d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  strength: 0
+  sr: {fileID: 212383123070360652}
 --- !u!212 &212383123070360652
 SpriteRenderer:
   m_ObjectHideFlags: 1
@@ -107,7 +121,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 4
+  m_SortingOrder: -1
   m_Sprite: {fileID: 21300000, guid: 8afc00d483e8df34492d0bd63d208598, type: 3}
   m_Color: {r: 0.990566, g: 0.990566, b: 0.990566, a: 1}
   m_FlipX: 0

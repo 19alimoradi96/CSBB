@@ -5,35 +5,19 @@ using UnityEngine;
 public class Ball : MonoBehaviour {
     private Vector3 mouseDownPos;
     private Transform ballTransform;
-    public Transform ball;
+    public GameObject ball;
     public Camera cam;
+    public enum states {
+        inside = 0, outside = 1
+    };
+    public states state;
     // Use this for initialization
     void Start () {
+        state = states.inside;
     }
-
-    // Update is called once per frame
-    void Update () {
-        if (Input.GetMouseButtonDown (0)) {
-            // Debug.Log(Input.mousePosition);
-            // mouseDownPos = Input.mousePosition;
+     void OnCollisionEnter2D (Collision2D clsn) {
+        if(clsn.gameObject.tag == "Ball"){
+            Physics2D.IgnoreCollision(clsn.collider, GetComponent<Collider2D>());
         }
-        if (Input.GetMouseButtonUp (0)) {
-            // Debug.Log(Input.mousePosition);
-            Vector3 shoot = cam.ScreenToWorldPoint (Input.mousePosition);
-            shoot.z = 0;
-            Debug.Log (shoot);
-            ball.GetComponent<Rigidbody2D> ().AddForce (shoot * 150.0f);
-            // ball.GetComponent<Rigidbody2D> ().
-        }
-    }
-    void OnCollisionEnter2D (Collision2D cldr) {
-        if(cldr.gameObject.tag == "Brick"){
-            Debug.Log ("brick enter");
-            Brick brick = cldr.gameObject.GetComponent<Brick>();
-            brick.setStrength(brick.getStrength()-1);
-        }
-    }
-    private void OnCollisionExit2D (Collision2D cldr) {
-        // Debug.Log ("collision exit");
-    }
+    }   
 }

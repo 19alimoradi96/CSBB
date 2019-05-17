@@ -6,18 +6,30 @@ using UnityEngine.UI;
 public class BrickPR {
     public BrickPR (Vector3 posrot) {
         this.posrot = posrot; //x and y: positions; z: rotation
+        this.exist = false;
+    }
+    public BrickPR (Vector3 posrot, bool exist) {
+        this.posrot = posrot; //x and y: positions; z: rotation
+        this.exist = exist;
     }
     public Vector3 posrot;
+    public bool exist;
 }
 
 // 	},{},{},{},{}};
 public class GameInit : MonoBehaviour {
     public GameObject[] bricks = new GameObject[6];
     public GameObject[] rows = new GameObject[6];
+    public GameObject ball;
     public Camera cam;
     public static int level = 1;
-
-    private List<BrickPR[]> bricksPr = new List<BrickPR[]> ();
+    public List<GameObject> balls;
+    public int numberOfBricks = 0;
+    public enum BallsState {
+        inside = 0, outside = 1
+    };
+    public BallsState ballsState;
+    public List<BrickPR[]> bricksPr = new List<BrickPR[]> ();
     private BrickPR[] row1bricksPr = new BrickPR[11] {
         new BrickPR (new Vector3 (5.1f, 0.47f, -86.734f)),
         new BrickPR (new Vector3 (3.94f, 3.23f, -54.004f)),
@@ -103,9 +115,35 @@ public class GameInit : MonoBehaviour {
     void Start () {
         addRowsBrickToList ();
         genRows ();
+        ballsState = BallsState.inside;
+        balls = new List<GameObject>();
+        addBall();
     }
     void Update () {
-
+        if (Input.GetMouseButtonUp (0)) {
+            // Debug.Log(Input.mousePosition);
+            if(balls.Count == 0) return;
+            if(ballsState == BallsState.outside) return;
+            // for(int i=0; i<balls.Count; i++){
+            // }
+            StartCoroutine(shootBall(0, Input.mousePosition));
+        }
+    }
+    IEnumerator shootBall(int i, Vector3 pos){
+        while(i < balls.Count)//Or some other condition that will be true until you don't need it
+        {
+            yield return new WaitForSeconds(0.03f);
+            // Debug.Log ("i: " + i + ", balls.Count:" + balls.Count);
+            Vector3 direction = cam.ScreenToWorldPoint (pos);
+            direction.z = 0;
+            direction.Normalize();
+            balls[i].GetComponent<Rigidbody2D> ().AddForce (direction * 700.0f);
+            i++;
+            yield return null;
+        }
+        Debug.Log ("i: " + i + ", balls.Count:" + balls.Count);
+        yield break;
+        yield return null;
     }
     void addRowsBrickToList () {
         bricksPr.Add (row1bricksPr);
@@ -115,28 +153,35 @@ public class GameInit : MonoBehaviour {
         bricksPr.Add (row5bricksPr);
         bricksPr.Add (row6bricksPr);
     }
-    void genRows () {
+    public void genRows () {
         System.Random rand = new System.Random ();
         int brickCount = 0;
         int ind = 0;
-        for (int i = 0; i < bricksPr.Count; i++) {
-            brickCount = calcBrickCount (i);
-            for (int j = 0; j < brickCount; j++) {
-                ind = rand.Next (0, bricksPr[i].Length);
-                InstantiateBrick (bricks[i], bricksPr[i][ind].posrot, rows[i].transform);
+        int i=0;
+        brickCount = calcBrickCount (i);
+        for (int j = 0; j < brickCount; j++) {
+            ind = rand.Next (0, bricksPr[i].Length);
+            if(!bricksPr[i][ind].exist){
+                InstantiateBrick (bricks[i], bricksPr[i][ind].posrot, rows[i].transform, i, ind);
+                bricksPr[i][ind].exist = true;
+                numberOfBricks++;
             }
         }
     }
-    void InstantiateBrick (GameObject brick, Vector3 posrot, Transform parent) {
+    public void setBrickPrExs(int row, int col, bool exist){
+        bricksPr[row][col].exist = exist;
+    }
+    void InstantiateBrick (GameObject brick, Vector3 posrot, Transform parent, int i, int ind) {
         GameObject go = Instantiate (brick);
         go.transform.parent = parent;
         go.transform.position = new Vector3 (posrot.x, posrot.y, 0);
         go.transform.rotation = Quaternion.Euler (0, 0, posrot.z);
         // set strength
         Brick brck = go.GetComponent<Brick>();
+        brck.setRowCol(i, ind);
         brck.setStrength(level);
         //set color
-        go.GetComponent<SpriteRenderer>().color = new Color32(255, 0, 0, 255);
+        brck.sr.color = new Color32(255, 0, 0, 255);
         //set text
         // GameObject myText = new GameObject();
         // myText.transform.parent = go.transform;
@@ -155,23 +200,46 @@ public class GameInit : MonoBehaviour {
                 brickCount = random.Next (bricksPr[i].Length / 2, bricksPr[i].Length);
                 break;
             case 1:
-                brickCount = random.Next (bricksPr[i].Length / 5, bricksPr[i].Length / 2);
+                brickCount = random.Next (bricksPr[i].Length / 6, bricksPr[i].Length / 2);
                 break;
             case 2:
-                brickCount = random.Next (2, bricksPr[i].Length / 3);
+                brickCount = random.Next (2, bricksPr[i].Length / 4);
                 break;
             case 3:
-                brickCount = random.Next (1, bricksPr[i].Length / 3);
+                brickCount = random.Next (1, bricksPr[i].Length / 4);
                 break;
             case 4:
-                brickCount = random.Next (0, bricksPr[i].Length / 3);
+                brickCount = random.Next (0, 1);
                 break;
             case 5:
-                brickCount = random.Next (0, bricksPr[i].Length / 3);
+                brickCount = 0;
                 break;
             default:
                 break;
         }
         return brickCount;
     }
+    
+    public void addBall(){
+        GameObject bo = Instantiate (ball);
+        bo.transform.position = Vector3.zero;
+        bo.transform.rotation = Quaternion.Euler (Vector3.zero);
+        balls.Add(bo);
+    }
+    public int getBallCount(){
+        return balls.Count;
+    }
+    public void resetLevel(){
+        Trap.trapped = 0;
+        level++;
+        Debug.Log ("balls enter to trap");
+        ballsState = BallsState.inside;
+        addBall();
+        genRows();
+        for(int i=0; i<balls.Count; i++){
+            balls[i].GetComponent<Rigidbody2D>().velocity = Vector3.zero;
+			balls[i].transform.position = Vector3.zero;
+        }
+    }
+    
 }
